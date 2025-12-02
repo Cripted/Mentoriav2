@@ -5,7 +5,7 @@
 
 // Configuración de la base de datos
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'mentoria_db');
+define('DB_NAME', 'mentoria');
 define('DB_USER', 'root');
 define('DB_PASS', ''); // Por defecto XAMPP no tiene contraseña
 define('DB_CHARSET', 'utf8mb4');
