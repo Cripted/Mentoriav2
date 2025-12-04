@@ -439,11 +439,12 @@
             </div>
         </div>
 
-        <!-- ================ VISTA APRENDIZ ================ -->
+<!-- ================ VISTA APRENDIZ ================ -->
         <div id="vista-aprendiz" class="content-wrapper hidden">
             <div class="tab-content active">
                 <h2>Mi Panel de Aprendiz</h2>
                 
+                <!-- FORMULARIO PARA COMPLETAR PERFIL -->
                 <div id="aprendiz-perfil-incompleto" class="perfil-incompleto-alert hidden">
                     <h3>⚠️ Completa tu perfil</h3>
                     <p>Para solicitar mentores, completa tu información académica.</p>
@@ -481,9 +482,11 @@
                     </form>
                 </div>
 
+                <!-- PANEL PRINCIPAL DEL APRENDIZ -->
                 <div id="aprendiz-panel-principal" class="hidden">
+                    <!-- SECCIÓN: MI MENTOR -->
                     <div class="card">
-                        <h3>Solicitar Sesión con Mentor</h3>
+                        <h3>Mi Mentor</h3>
                         <div id="aprendiz-mentor-info"></div>
                         <form id="form-solicitar-sesion" class="hidden">
                             <div class="form-row">
@@ -511,6 +514,15 @@
                         </form>
                     </div>
 
+                    <!-- SECCIÓN: BUSCAR MENTORES (Solo se muestra si NO tiene mentor) -->
+                    <div id="aprendiz-buscar-mentor" class="card" style="display: none;">
+                        <h3>🔍 Buscar Mentores Disponibles</h3>
+                        <div id="aprendiz-lista-mentores">
+                            <p style="color: #6b7280;">Cargando mentores disponibles...</p>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN: MIS SESIONES -->
                     <div class="card">
                         <h3>Mis Sesiones</h3>
                         <div id="aprendiz-sesiones"></div>
