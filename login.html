@@ -80,6 +80,11 @@
             cursor: pointer;
             transition: all 0.3s;
             color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.5);
         }
 
         .tab-btn.active {
@@ -100,7 +105,8 @@
             font-size: 0.95rem;
         }
 
-        .form-group input {
+        .form-group input,
+        .form-group select {
             width: 100%;
             padding: 14px 16px;
             border: 2px solid #e5e7eb;
@@ -110,7 +116,8 @@
             background: #f9fafb;
         }
 
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
             border-color: #667eea;
             background: white;
@@ -135,7 +142,7 @@
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
         }
@@ -168,23 +175,16 @@
 
         .tab-content {
             display: none;
+            animation: fadeIn 0.3s ease-in;
         }
 
         .tab-content.active {
             display: block;
-            animation: fadeIn 0.3s ease-in;
         }
 
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
-        }
-
-        .divider {
-            text-align: center;
-            margin: 25px 0;
-            color: #9ca3af;
-            font-size: 0.9rem;
         }
 
         .footer-text {
@@ -208,6 +208,49 @@
             cursor: pointer;
             color: #6b7280;
             font-size: 1.2rem;
+            padding: 5px;
+        }
+
+        .password-toggle button:hover {
+            color: #374151;
+        }
+
+        .role-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .role-option {
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9fafb;
+        }
+
+        .role-option:hover {
+            border-color: #667eea;
+            background: white;
+        }
+
+        .role-option.selected {
+            border-color: #667eea;
+            background: #eff6ff;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .role-option input[type="radio"] {
+            display: none;
+        }
+
+        .role-icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -230,13 +273,13 @@
             <form id="form-login">
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" name="email" required>
+                    <input type="email" name="email" required placeholder="ejemplo@correo.com">
                 </div>
 
                 <div class="form-group">
                     <label>Contraseña</label>
                     <div class="password-toggle">
-                        <input type="password" name="password" id="login-password" required>
+                        <input type="password" name="password" id="login-password" required placeholder="Tu contraseña">
                         <button type="button" onclick="togglePassword('login-password')">👁️</button>
                     </div>
                 </div>
@@ -245,7 +288,8 @@
             </form>
 
             <div class="footer-text">
-                ¿Admin? Usa: admin@mentormatch.com / admin123
+                <strong>Administrador:</strong> admin@mentormatch.com / admin123<br>
+                <strong>Ejemplo:</strong> maria@ejemplo.com / password
             </div>
         </div>
 
@@ -253,19 +297,35 @@
         <div id="register" class="tab-content">
             <form id="form-register">
                 <div class="form-group">
+                    <label>¿Cómo te quieres registrar?</label>
+                    <div class="role-selector">
+                        <label class="role-option selected" for="rol-aprendiz">
+                            <div class="role-icon">🎓</div>
+                            <div>Aprendiz</div>
+                            <input type="radio" name="rol" id="rol-aprendiz" value="aprendiz" checked>
+                        </label>
+                        <label class="role-option" for="rol-mentor">
+                            <div class="role-icon">👨‍🏫</div>
+                            <div>Mentor</div>
+                            <input type="radio" name="rol" id="rol-mentor" value="mentor">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <label>Nombre Completo</label>
-                    <input type="text" name="nombre" required>
+                    <input type="text" name="nombre" required placeholder="Tu nombre completo">
                 </div>
 
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" name="email" required>
+                    <input type="email" name="email" required placeholder="ejemplo@correo.com">
                 </div>
 
                 <div class="form-group">
-                    <label>Contraseña</label>
+                    <label>Contraseña (mínimo 6 caracteres)</label>
                     <div class="password-toggle">
-                        <input type="password" name="password" id="register-password" minlength="6" required>
+                        <input type="password" name="password" id="register-password" minlength="6" required placeholder="Crea una contraseña">
                         <button type="button" onclick="togglePassword('register-password')">👁️</button>
                     </div>
                 </div>
@@ -273,7 +333,7 @@
                 <div class="form-group">
                     <label>Confirmar Contraseña</label>
                     <div class="password-toggle">
-                        <input type="password" name="confirm-password" id="confirm-password" minlength="6" required>
+                        <input type="password" name="confirm-password" id="confirm-password" minlength="6" required placeholder="Repite tu contraseña">
                         <button type="button" onclick="togglePassword('confirm-password')">👁️</button>
                     </div>
                 </div>
@@ -282,26 +342,43 @@
             </form>
 
             <div class="footer-text">
-                Te registrarás como Aprendiz
+                Después del registro, completa tu perfil para comenzar
             </div>
         </div>
     </div>
 
     <script>
-        // Detectar ruta base
-        const BASE_PATH = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
-        const AUTH_URL = window.location.origin + BASE_PATH + '/php/auth.php';
+        // Detectar ruta automáticamente
+        const currentPath = window.location.pathname;
+        const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+        const AUTH_URL = window.location.origin + basePath + '/php/auth.php';
+        
+        console.log('🔗 Auth URL:', AUTH_URL);
 
-        // Tabs
+        // Tabs functionality
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                // Remover active de todos los botones
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                // Agregar active al botón clickeado
                 btn.classList.add('active');
 
+                // Ocultar todos los contenidos
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                document.getElementById(btn.dataset.tab).classList.add('active');
+                // Mostrar el contenido correspondiente
+                const tabId = btn.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
 
                 hideAlert();
+            });
+        });
+
+        // Role selector
+        document.querySelectorAll('.role-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                option.querySelector('input[type="radio"]').checked = true;
             });
         });
 
@@ -338,6 +415,8 @@
                 password: formData.get('password')
             };
 
+            console.log('📤 Enviando login...');
+
             try {
                 const response = await fetch(`${AUTH_URL}?action=login`, {
                     method: 'POST',
@@ -345,7 +424,17 @@
                     body: JSON.stringify(data)
                 });
 
-                const result = await response.json();
+                const textResponse = await response.text();
+                console.log('📥 Respuesta:', textResponse);
+
+                let result;
+                try {
+                    result = JSON.parse(textResponse);
+                } catch (parseError) {
+                    console.error('❌ Error al parsear:', parseError);
+                    showAlert('Error del servidor. Verifica que php/auth.php existe.');
+                    return;
+                }
 
                 if (response.ok) {
                     showAlert('¡Inicio de sesión exitoso!', 'success');
@@ -356,8 +445,8 @@
                     showAlert(result.error || 'Error al iniciar sesión');
                 }
             } catch (error) {
-                showAlert('Error de conexión con el servidor');
-                console.error(error);
+                console.error('❌ Error:', error);
+                showAlert('Error de conexión. Verifica que XAMPP está corriendo.');
             }
         });
 
@@ -375,12 +464,19 @@
                 return;
             }
 
+            if (password.length < 6) {
+                showAlert('La contraseña debe tener al menos 6 caracteres');
+                return;
+            }
+
             const data = {
                 nombre: formData.get('nombre'),
                 email: formData.get('email'),
                 password: password,
-                rol: 'aprendiz'
+                rol: formData.get('rol')
             };
+
+            console.log('📤 Enviando registro...');
 
             try {
                 const response = await fetch(`${AUTH_URL}?action=register`, {
@@ -389,20 +485,35 @@
                     body: JSON.stringify(data)
                 });
 
-                const result = await response.json();
+                const textResponse = await response.text();
+                console.log('📥 Respuesta:', textResponse);
+
+                let result;
+                try {
+                    result = JSON.parse(textResponse);
+                } catch (parseError) {
+                    console.error('❌ Error al parsear:', parseError);
+                    showAlert('Error del servidor. Verifica que php/auth.php existe.');
+                    return;
+                }
 
                 if (response.ok) {
-                    showAlert('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.', 'success');
+                    showAlert(`¡Cuenta de ${data.rol} creada exitosamente! Ahora puedes iniciar sesión.`, 'success');
                     setTimeout(() => {
+                        // Cambiar al tab de login
                         document.querySelector('[data-tab="login"]').click();
                         e.target.reset();
+                        // Resetear la selección de rol
+                        document.querySelector('#rol-aprendiz').checked = true;
+                        document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+                        document.querySelector('label[for="rol-aprendiz"]').classList.add('selected');
                     }, 2000);
                 } else {
                     showAlert(result.error || 'Error al crear cuenta');
                 }
             } catch (error) {
-                showAlert('Error de conexión con el servidor');
-                console.error(error);
+                console.error('❌ Error:', error);
+                showAlert('Error de conexión. Verifica que XAMPP está corriendo.');
             }
         });
     </script>
