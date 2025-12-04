@@ -3,505 +3,315 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mentor-Match - Sistema de Gestión de Mentorías</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Mentor-Match - Sistema de Mentorías</title>
     <style>
-        .user-menu {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
             display: flex;
             align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .header-buttons {
+            display: flex;
             gap: 15px;
         }
 
-        .user-info {
-            text-align: right;
-        }
-
-        .user-name {
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 2px;
-        }
-
-        .user-rol {
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .user-rol.admin {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
-
-        .user-rol.mentor {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-        }
-
-        .user-rol.aprendiz {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-
-        .btn-logout {
-            padding: 8px 16px;
-            background: #ef4444;
-            color: white;
+        .btn {
+            padding: 12px 30px;
             border: none;
-            border-radius: 8px;
-            font-weight: 600;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .btn-logout:hover {
-            background: #dc2626;
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: #667eea;
             transform: translateY(-2px);
         }
 
-        .hidden {
-            display: none !important;
+        .btn-primary {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        .perfil-incompleto-alert {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-left: 4px solid #f59e0b;
-            padding: 20px;
-            border-radius: 12px;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-size: 4rem;
             margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .perfil-incompleto-alert h3 {
-            color: #92400e;
-            margin-bottom: 10px;
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+            line-height: 1.8;
         }
 
-        .perfil-incompleto-alert p {
-            color: #78350f;
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero {
+            padding: 18px 45px;
+            font-size: 1.2rem;
+        }
+
+        /* Features */
+        .features {
+            padding: 80px 40px;
+            background: white;
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #1f2937;
+            margin-bottom: 50px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            padding: 30px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
             margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+
+        .feature-card p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 30px 40px;
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.2rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .features {
+                padding: 40px 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Navegación -->
-    <nav class="navbar">
-        <div class="container" style="position: relative;">
-            <h1 class="navbar-title">Mentor-Match</h1>
-            <p class="navbar-subtitle">Sistema de Gestión de Mentorías Académicas</p>
-            
-            <div class="user-menu">
-                <div class="user-info">
-                    <div class="user-name" id="user-name"></div>
-                    <span class="user-rol" id="user-rol"></span>
-                </div>
-                <button class="btn-logout" onclick="logout()">Salir</button>
-            </div>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            ✨ Mentor-Match
         </div>
-    </nav>
-
-    <!-- Contenedor Principal -->
-    <div class="container main-container">
-        <!-- Tabs de Navegación (Solo Admin) -->
-        <div class="tabs" id="admin-tabs">
-            <button class="tab-btn active" data-tab="dashboard">
-                <span class="icon">📊</span>
-                Dashboard
-            </button>
-            <button class="tab-btn" data-tab="registro">
-                <span class="icon">👤</span>
-                Registro
-            </button>
-            <button class="tab-btn" data-tab="emparejamiento">
-                <span class="icon">🤝</span>
-                Emparejamiento
-            </button>
-            <button class="tab-btn" data-tab="sesiones">
-                <span class="icon">📅</span>
-                Sesiones
-            </button>
-            <button class="tab-btn" data-tab="reportes">
-                <span class="icon">📈</span>
-                Reportes
-            </button>
-            <button class="tab-btn" data-tab="crud" id="btn-crud">
-                <span class="icon">⚙️</span>
-                CRUD
-            </button>
+        <div class="header-buttons">
+            <a href="login.html" class="btn btn-outline">Iniciar Sesión</a>
+            <a href="login.html#registro" class="btn btn-primary">Registrarse</a>
         </div>
+    </div>
 
-        <!-- Vista para Aprendiz -->
-        <div id="vista-aprendiz" class="content-wrapper hidden">
-            <div class="tab-content active">
-                <h2>Mi Panel de Aprendiz</h2>
-                
-                <!-- Completar Perfil -->
-                <div id="aprendiz-perfil-incompleto" class="perfil-incompleto-alert hidden">
-                    <h3>⚠️ Completa tu perfil</h3>
-                    <p>Para poder solicitar mentores, necesitas completar tu información académica.</p>
-                    
-                    <form id="form-completar-perfil-aprendiz">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Carrera</label>
-                                <select name="carrera" required>
-                                    <option value="">Seleccionar</option>
-                                    <option value="Ingeniería en Sistemas">Ingeniería en Sistemas</option>
-                                    <option value="Ingeniería Industrial">Ingeniería Industrial</option>
-                                    <option value="Administración">Administración</option>
-                                    <option value="Contabilidad">Contabilidad</option>
-                                    <option value="Derecho">Derecho</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Semestre</label>
-                                <input type="number" name="semestre" min="1" max="12" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Materias de Interés (separadas por comas)</label>
-                            <input type="text" name="materias" placeholder="Cálculo, Programación" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Habilidades (separadas por comas)</label>
-                            <input type="text" name="habilidades" placeholder="Python, Excel" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Disponibilidad</label>
-                            <input type="text" name="disponibilidad" placeholder="Lunes y Miércoles 3-5 PM" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block">Guardar Perfil</button>
-                    </form>
-                </div>
-
-                <!-- Panel Principal Aprendiz -->
-                <div id="aprendiz-panel-principal" class="hidden">
-                    <div class="card">
-                        <h3>Solicitar Sesión con Mentor</h3>
-                        <div id="aprendiz-mentor-info"></div>
-                        <form id="form-solicitar-sesion" class="hidden">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Fecha</label>
-                                    <input type="date" name="fecha" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Hora</label>
-                                    <input type="time" name="hora" required>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Tema</label>
-                                <input type="text" name="tema" placeholder="¿Qué te gustaría aprender?" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Modalidad</label>
-                                <select name="modalidad">
-                                    <option value="presencial">Presencial</option>
-                                    <option value="virtual">Virtual</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-block">Solicitar Sesión</button>
-                        </form>
-                    </div>
-
-                    <div class="card">
-                        <h3>Mis Sesiones</h3>
-                        <div id="aprendiz-sesiones"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Vista para Mentor -->
-        <div id="vista-mentor" class="content-wrapper hidden">
-            <div class="tab-content active">
-                <h2>Mi Panel de Mentor</h2>
-                
-                <!-- Completar Perfil Mentor -->
-                <div id="mentor-perfil-incompleto" class="perfil-incompleto-alert hidden">
-                    <h3>⚠️ Completa tu perfil</h3>
-                    <p>Completa tu información para poder recibir aprendices.</p>
-                    
-                    <form id="form-completar-perfil-mentor">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Carrera</label>
-                                <select name="carrera" required>
-                                    <option value="">Seleccionar</option>
-                                    <option value="Ingeniería en Sistemas">Ingeniería en Sistemas</option>
-                                    <option value="Ingeniería Industrial">Ingeniería Industrial</option>
-                                    <option value="Administración">Administración</option>
-                                    <option value="Contabilidad">Contabilidad</option>
-                                    <option value="Derecho">Derecho</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Semestre</label>
-                                <input type="number" name="semestre" min="1" max="12" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Materias que puedes enseñar (separadas por comas)</label>
-                            <input type="text" name="materias" placeholder="Cálculo, Programación" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Habilidades (separadas por comas)</label>
-                            <input type="text" name="habilidades" placeholder="Python, JavaScript" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Disponibilidad</label>
-                            <input type="text" name="disponibilidad" placeholder="Lunes y Miércoles 3-5 PM" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block">Guardar Perfil</button>
-                    </form>
-                </div>
-
-                <!-- Panel Principal Mentor -->
-                <div id="mentor-panel-principal" class="hidden">
-                    <div class="stats-grid">
-                        <div class="stat-card green">
-                            <div class="stat-content">
-                                <p class="stat-label">Aprendices Asignados</p>
-                                <p class="stat-value" id="mentor-total-aprendices">0</p>
-                            </div>
-                            <span class="stat-icon">👥</span>
-                        </div>
-                        <div class="stat-card purple">
-                            <div class="stat-content">
-                                <p class="stat-label">Sesiones Pendientes</p>
-                                <p class="stat-value" id="mentor-sesiones-pendientes">0</p>
-                            </div>
-                            <span class="stat-icon">⏳</span>
-                        </div>
-                        <div class="stat-card orange">
-                            <div class="stat-content">
-                                <p class="stat-label">Sesiones Completadas</p>
-                                <p class="stat-value" id="mentor-sesiones-completadas">0</p>
-                            </div>
-                            <span class="stat-icon">✅</span>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h3>Sesiones Programadas</h3>
-                        <div id="mentor-sesiones-programadas"></div>
-                    </div>
-
-                    <div class="card">
-                        <h3>Mis Aprendices</h3>
-                        <div id="mentor-lista-aprendices"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Contenido de las Pestañas (Admin) -->
-        <div class="content-wrapper" id="admin-content">
-            <!-- Dashboard -->
-            <div id="dashboard" class="tab-content active">
-                <h2>Dashboard - Programa de Mentorías</h2>
-                
-                <div class="stats-grid">
-                    <div class="stat-card blue">
-                        <div class="stat-content">
-                            <p class="stat-label">Mentores Activos</p>
-                            <p class="stat-value" id="total-mentores">0</p>
-                        </div>
-                        <span class="stat-icon">👨‍🏫</span>
-                    </div>
-                    <div class="stat-card green">
-                        <div class="stat-content">
-                            <p class="stat-label">Aprendices</p>
-                            <p class="stat-value" id="total-aprendices">0</p>
-                        </div>
-                        <span class="stat-icon">📚</span>
-                    </div>
-                    <div class="stat-card purple">
-                        <div class="stat-content">
-                            <p class="stat-label">Emparejamientos</p>
-                            <p class="stat-value" id="total-emparejamientos">0</p>
-                        </div>
-                        <span class="stat-icon">🤝</span>
-                    </div>
-                    <div class="stat-card orange">
-                        <div class="stat-content">
-                            <p class="stat-label">Sesiones Realizadas</p>
-                            <p class="stat-value" id="sesiones-completadas">0</p>
-                        </div>
-                        <span class="stat-icon">✅</span>
-                    </div>
-                </div>
-
-                <div id="alert-container"></div>
-
-                <div class="dashboard-grid">
-                    <div class="card">
-                        <h3>Próximas Sesiones</h3>
-                        <div id="proximas-sesiones"></div>
-                    </div>
-                    <div class="card">
-                        <h3>Carreras con más Mentorías</h3>
-                        <div id="carreras-top"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Registro (Redirige al CRUD) -->
-            <div id="registro" class="tab-content">
-                <h2>Gestión de Mentores y Aprendices</h2>
-                
-                <div class="card text-center" style="padding: 60px 40px;">
-                    <div style="font-size: 80px; margin-bottom: 20px;">⚙️</div>
-                    <h3 style="margin-bottom: 15px; color: #1f2937;">Usa el CRUD para gestionar usuarios</h3>
-                    <p style="color: #6b7280; margin-bottom: 30px; font-size: 1.1rem;">
-                        Todas las operaciones de crear, editar y eliminar mentores y aprendices<br>
-                        ahora se realizan desde el módulo CRUD por seguridad y control.
-                    </p>
-                    <button onclick="switchTab('crud')" class="btn btn-primary" style="font-size: 1.1rem; padding: 15px 40px;">
-                        🚀 Ir al CRUD
-                    </button>
-                </div>
-            </div>
-
-            <!-- Emparejamiento -->
-            <div id="emparejamiento" class="tab-content">
-                <h2>Emparejamiento Mentor-Aprendiz</h2>
-                
-                <div class="card">
-                    <div class="search-bar">
-                        <select id="select-aprendiz" class="search-select">
-                            <option value="">Seleccionar Aprendiz</option>
-                        </select>
-                        <button id="btn-buscar-mentores" class="btn btn-primary" disabled>
-                            🔍 Buscar Mentores
-                        </button>
-                    </div>
-                </div>
-
-                <div id="mentores-sugeridos"></div>
-            </div>
-
-            <!-- Sesiones -->
-            <div id="sesiones" class="tab-content">
-                <h2>Gestión de Sesiones</h2>
-                
-                <div class="sessions-grid">
-                    <div class="card">
-                        <h3>Programar Nueva Sesión</h3>
-                        <form id="form-sesion">
-                            <div class="form-group">
-                                <label>Emparejamiento</label>
-                                <select id="select-emparejamiento" required>
-                                    <option value="">Seleccionar</option>
-                                </select>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Fecha</label>
-                                    <input type="date" id="fecha-sesion" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Hora</label>
-                                    <input type="time" id="hora-sesion" required>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Tema</label>
-                                <input type="text" id="tema-sesion" placeholder="Ej: Resolución de dudas de Cálculo" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Modalidad</label>
-                                <select id="modalidad-sesion">
-                                    <option value="presencial">Presencial</option>
-                                    <option value="virtual">Virtual</option>
-                                </select>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary btn-block">Programar Sesión</button>
-                        </form>
-                    </div>
-
-                    <div class="card">
-                        <h3>Sesiones Recientes</h3>
-                        <div id="lista-sesiones" class="sesiones-list"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Reportes -->
-            <div id="reportes" class="tab-content">
-                <h2>Reportes y Estadísticas</h2>
-                
-                <div class="stats-row">
-                    <div class="card text-center">
-                        <p class="stat-label">Total de Sesiones</p>
-                        <p class="stat-value" id="reporte-total-sesiones">0</p>
-                    </div>
-                    <div class="card text-center">
-                        <p class="stat-label">Sesiones Completadas</p>
-                        <p class="stat-value" id="reporte-sesiones-completadas">0</p>
-                    </div>
-                    <div class="card text-center">
-                        <p class="stat-label">Tasa de Completación</p>
-                        <p class="stat-value" id="tasa-completacion">0%</p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>Emparejamientos Activos</h3>
-                    <div class="table-container">
-                        <table id="tabla-emparejamientos">
-                            <thead>
-                                <tr>
-                                    <th>Mentor</th>
-                                    <th>Aprendiz</th>
-                                    <th>Carrera</th>
-                                    <th>Sesiones</th>
-                                    <th>Fecha de Emparejamiento</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>Mentores Más Activos</h3>
-                    <div id="mentores-activos"></div>
-                </div>
-            </div>
-
-            <!-- CRUD -->
-            <div id="crud" class="tab-content">
-                <iframe src="admin/crud.php" style="width: 100%; height: 80vh; border: none; border-radius: 12px;"></iframe>
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1>🎓 Mentor-Match</h1>
+            <p>
+                Conectamos estudiantes con mentores experimentados para 
+                potenciar tu aprendizaje académico y desarrollo profesional.
+            </p>
+            <div class="hero-buttons">
+                <a href="login.html#registro" class="btn btn-primary btn-hero">
+                    Quiero un Mentor
+                </a>
+                <a href="login.html" class="btn btn-outline btn-hero">
+                    Soy Mentor
+                </a>
             </div>
         </div>
     </div>
 
-    <script src="db/api.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/auth.js"></script>
-    <script>
-        // Iniciar verificación de sesión cuando todo esté cargado
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (typeof checkSession === 'function') {
-                await checkSession();
-            } else {
-                console.error('❌ auth.js no se cargó correctamente');
-            }
-        });
-    </script>
+    <!-- Features -->
+    <div class="features">
+        <div class="features-container">
+            <h2>¿Por qué Mentor-Match?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Emparejamiento Inteligente</h3>
+                    <p>
+                        Nuestro algoritmo encuentra el mentor perfecto según 
+                        tu carrera, materias y objetivos académicos.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📅</div>
+                    <h3>Sesiones Flexibles</h3>
+                    <p>
+                        Programa sesiones presenciales o virtuales que se 
+                        adapten a tu horario y necesidades.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Seguimiento de Progreso</h3>
+                    <p>
+                        Mantén un registro de tus sesiones, logros y 
+                        áreas de mejora con bitácoras detalladas.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>Comunidad de Apoyo</h3>
+                    <p>
+                        Únete a una red de estudiantes y mentores 
+                        comprometidos con la excelencia académica.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Seguro y Confiable</h3>
+                    <p>
+                        Sistema seguro con perfiles verificados y 
+                        protección de datos personales.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Fácil de Usar</h3>
+                    <p>
+                        Interfaz intuitiva que te permite enfocarte en 
+                        lo importante: tu aprendizaje.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>&copy; 2024 Mentor-Match. Sistema de Gestión de Mentorías Académicas.</p>
+    </div>
 </body>
 </html>

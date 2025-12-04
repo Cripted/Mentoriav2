@@ -484,7 +484,7 @@ $totalEmparejamientos = $stmt->fetch()['total'];
 <div class="container">
     <div class="header">
         <h1>⚙️ CRUD - Gestión de Mentorías</h1>
-        <a href="../index.html" class="back-btn">← Volver al Sistema</a>
+        <a href="../dashboard.html" class="back-btn">← Volver al Sistema</a>
     </div>
     
     <div class="stats-grid">

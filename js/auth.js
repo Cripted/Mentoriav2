@@ -407,10 +407,10 @@ async function mentorCompletarSesion(sesionId) {
 async function logout() {
     try {
         await fetch(`${AUTH_URL}?action=logout`, { method: 'POST' });
-        window.location.href = 'login.html';
+        window.location.href = 'index.html'; // Ir a la página pública
     } catch (error) {
         console.error('Error al cerrar sesión:', error);
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
     }
 }
 
