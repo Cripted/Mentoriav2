@@ -5,20 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mentor-Match - Sistema de Gestión de Mentorías</title>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .user-menu {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 2px;
+        }
+
+        .user-rol {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .user-rol.admin {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .user-rol.mentor {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .user-rol.aprendiz {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .perfil-incompleto-alert {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .perfil-incompleto-alert h3 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+
+        .perfil-incompleto-alert p {
+            color: #78350f;
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
     <!-- Navegación -->
     <nav class="navbar">
-        <div class="container">
+        <div class="container" style="position: relative;">
             <h1 class="navbar-title">Mentor-Match</h1>
             <p class="navbar-subtitle">Sistema de Gestión de Mentorías Académicas</p>
+            
+            <div class="user-menu">
+                <div class="user-info">
+                    <div class="user-name" id="user-name"></div>
+                    <span class="user-rol" id="user-rol"></span>
+                </div>
+                <button class="btn-logout" onclick="logout()">Salir</button>
+            </div>
         </div>
     </nav>
 
     <!-- Contenedor Principal -->
     <div class="container main-container">
-        <!-- Tabs de Navegación -->
-        <div class="tabs">
+        <!-- Tabs de Navegación (Solo Admin) -->
+        <div class="tabs" id="admin-tabs">
             <button class="tab-btn active" data-tab="dashboard">
                 <span class="icon">📊</span>
                 Dashboard
@@ -39,10 +132,180 @@
                 <span class="icon">📈</span>
                 Reportes
             </button>
+            <button class="tab-btn" data-tab="crud" id="btn-crud">
+                <span class="icon">⚙️</span>
+                CRUD
+            </button>
         </div>
 
-        <!-- Contenido de las Pestañas -->
-        <div class="content-wrapper">
+        <!-- Vista para Aprendiz -->
+        <div id="vista-aprendiz" class="content-wrapper hidden">
+            <div class="tab-content active">
+                <h2>Mi Panel de Aprendiz</h2>
+                
+                <!-- Completar Perfil -->
+                <div id="aprendiz-perfil-incompleto" class="perfil-incompleto-alert hidden">
+                    <h3>⚠️ Completa tu perfil</h3>
+                    <p>Para poder solicitar mentores, necesitas completar tu información académica.</p>
+                    
+                    <form id="form-completar-perfil-aprendiz">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Carrera</label>
+                                <select name="carrera" required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="Ingeniería en Sistemas">Ingeniería en Sistemas</option>
+                                    <option value="Ingeniería Industrial">Ingeniería Industrial</option>
+                                    <option value="Administración">Administración</option>
+                                    <option value="Contabilidad">Contabilidad</option>
+                                    <option value="Derecho">Derecho</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Semestre</label>
+                                <input type="number" name="semestre" min="1" max="12" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Materias de Interés (separadas por comas)</label>
+                            <input type="text" name="materias" placeholder="Cálculo, Programación" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Habilidades (separadas por comas)</label>
+                            <input type="text" name="habilidades" placeholder="Python, Excel" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Disponibilidad</label>
+                            <input type="text" name="disponibilidad" placeholder="Lunes y Miércoles 3-5 PM" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Guardar Perfil</button>
+                    </form>
+                </div>
+
+                <!-- Panel Principal Aprendiz -->
+                <div id="aprendiz-panel-principal" class="hidden">
+                    <div class="card">
+                        <h3>Solicitar Sesión con Mentor</h3>
+                        <div id="aprendiz-mentor-info"></div>
+                        <form id="form-solicitar-sesion" class="hidden">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Fecha</label>
+                                    <input type="date" name="fecha" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Hora</label>
+                                    <input type="time" name="hora" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Tema</label>
+                                <input type="text" name="tema" placeholder="¿Qué te gustaría aprender?" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Modalidad</label>
+                                <select name="modalidad">
+                                    <option value="presencial">Presencial</option>
+                                    <option value="virtual">Virtual</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Solicitar Sesión</button>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <h3>Mis Sesiones</h3>
+                        <div id="aprendiz-sesiones"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista para Mentor -->
+        <div id="vista-mentor" class="content-wrapper hidden">
+            <div class="tab-content active">
+                <h2>Mi Panel de Mentor</h2>
+                
+                <!-- Completar Perfil Mentor -->
+                <div id="mentor-perfil-incompleto" class="perfil-incompleto-alert hidden">
+                    <h3>⚠️ Completa tu perfil</h3>
+                    <p>Completa tu información para poder recibir aprendices.</p>
+                    
+                    <form id="form-completar-perfil-mentor">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Carrera</label>
+                                <select name="carrera" required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="Ingeniería en Sistemas">Ingeniería en Sistemas</option>
+                                    <option value="Ingeniería Industrial">Ingeniería Industrial</option>
+                                    <option value="Administración">Administración</option>
+                                    <option value="Contabilidad">Contabilidad</option>
+                                    <option value="Derecho">Derecho</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Semestre</label>
+                                <input type="number" name="semestre" min="1" max="12" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Materias que puedes enseñar (separadas por comas)</label>
+                            <input type="text" name="materias" placeholder="Cálculo, Programación" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Habilidades (separadas por comas)</label>
+                            <input type="text" name="habilidades" placeholder="Python, JavaScript" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Disponibilidad</label>
+                            <input type="text" name="disponibilidad" placeholder="Lunes y Miércoles 3-5 PM" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Guardar Perfil</button>
+                    </form>
+                </div>
+
+                <!-- Panel Principal Mentor -->
+                <div id="mentor-panel-principal" class="hidden">
+                    <div class="stats-grid">
+                        <div class="stat-card green">
+                            <div class="stat-content">
+                                <p class="stat-label">Aprendices Asignados</p>
+                                <p class="stat-value" id="mentor-total-aprendices">0</p>
+                            </div>
+                            <span class="stat-icon">👥</span>
+                        </div>
+                        <div class="stat-card purple">
+                            <div class="stat-content">
+                                <p class="stat-label">Sesiones Pendientes</p>
+                                <p class="stat-value" id="mentor-sesiones-pendientes">0</p>
+                            </div>
+                            <span class="stat-icon">⏳</span>
+                        </div>
+                        <div class="stat-card orange">
+                            <div class="stat-content">
+                                <p class="stat-label">Sesiones Completadas</p>
+                                <p class="stat-value" id="mentor-sesiones-completadas">0</p>
+                            </div>
+                            <span class="stat-icon">✅</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Sesiones Programadas</h3>
+                        <div id="mentor-sesiones-programadas"></div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Mis Aprendices</h3>
+                        <div id="mentor-lista-aprendices"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido de las Pestañas (Admin) -->
+        <div class="content-wrapper" id="admin-content">
             <!-- Dashboard -->
             <div id="dashboard" class="tab-content active">
                 <h2>Dashboard - Programa de Mentorías</h2>
@@ -92,65 +355,20 @@
                 </div>
             </div>
 
-            <!-- Registro -->
+            <!-- Registro (Redirige al CRUD) -->
             <div id="registro" class="tab-content">
-                <h2>Registro de Usuarios</h2>
+                <h2>Gestión de Mentores y Aprendices</h2>
                 
-                <div class="tipo-registro-btns">
-                    <button class="tipo-btn active" data-tipo="mentor">Registrar Mentor</button>
-                    <button class="tipo-btn" data-tipo="aprendiz">Registrar Aprendiz</button>
-                </div>
-
-                <div class="card">
-                    <form id="form-registro">
-                        <div class="form-group">
-                            <label>Nombre Completo</label>
-                            <input type="text" id="nombre" name="nombre" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="email" name="email" required>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Carrera</label>
-                                <select id="carrera" name="carrera" required>
-                                    <option value="">Seleccionar</option>
-                                    <option value="Ingeniería en Sistemas">Ingeniería en Sistemas</option>
-                                    <option value="Ingeniería Industrial">Ingeniería Industrial</option>
-                                    <option value="Administración">Administración</option>
-                                    <option value="Contabilidad">Contabilidad</option>
-                                    <option value="Derecho">Derecho</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Semestre</label>
-                                <input type="number" id="semestre" name="semestre" min="1" max="12" required>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Materias de Interés (separadas por comas)</label>
-                            <input type="text" id="materias" name="materias" placeholder="Cálculo, Programación, Bases de Datos" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Habilidades (separadas por comas)</label>
-                            <input type="text" id="habilidades" name="habilidades" placeholder="Python, JavaScript, Liderazgo" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Disponibilidad</label>
-                            <input type="text" id="disponibilidad" name="disponibilidad" placeholder="Lunes y Miércoles 3-5 PM" required>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-block">
-                            <span id="btn-registro-text">Registrar Mentor</span>
-                        </button>
-                    </form>
+                <div class="card text-center" style="padding: 60px 40px;">
+                    <div style="font-size: 80px; margin-bottom: 20px;">⚙️</div>
+                    <h3 style="margin-bottom: 15px; color: #1f2937;">Usa el CRUD para gestionar usuarios</h3>
+                    <p style="color: #6b7280; margin-bottom: 30px; font-size: 1.1rem;">
+                        Todas las operaciones de crear, editar y eliminar mentores y aprendices<br>
+                        ahora se realizan desde el módulo CRUD por seguridad y control.
+                    </p>
+                    <button onclick="switchTab('crud')" class="btn btn-primary" style="font-size: 1.1rem; padding: 15px 40px;">
+                        🚀 Ir al CRUD
+                    </button>
                 </div>
             </div>
 
@@ -264,13 +482,26 @@
                     <div id="mentores-activos"></div>
                 </div>
             </div>
+
+            <!-- CRUD -->
+            <div id="crud" class="tab-content">
+                <iframe src="admin/crud.php" style="width: 100%; height: 80vh; border: none; border-radius: 12px;"></iframe>
+            </div>
         </div>
     </div>
 
     <script src="db/api.js"></script>
     <script src="js/app.js"></script>
-    <!-- Cambiar estas líneas al final del body -->
-<script src="db/api.js"></script>
-<script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Iniciar verificación de sesión cuando todo esté cargado
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof checkSession === 'function') {
+                await checkSession();
+            } else {
+                console.error('❌ auth.js no se cargó correctamente');
+            }
+        });
+    </script>
 </body>
 </html>

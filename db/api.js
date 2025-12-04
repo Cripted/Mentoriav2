@@ -18,14 +18,14 @@ const DB = {
             const response = await fetch(`${API_URL}`);
             if (response.ok) {
                 const data = await response.json();
-                console.log('✅ Conexión con el servidor establecida');
+                console.log('Conexión con el servidor establecida');
                 console.log('📊 Estado:', data);
                 return true;
             }
             throw new Error('Servidor no disponible');
         } catch (error) {
-            console.error('❌ Error al conectar con el servidor:', error);
-            alert('❌ No se pudo conectar con el servidor.\n\nAsegúrate de que:\n1. XAMPP esté corriendo (Apache y MySQL)\n2. Los archivos estén en C:\\xampp\\htdocs\\Mentoriav2\\');
+            console.error('Error al conectar con el servidor:', error);
+            alert('No se pudo conectar con el servidor.\n\nAsegúrate de que:\n1. La pagina esta en linea\n2. Si necesita ayuda contacte con la pagina');
             return false;
         }
     },
@@ -43,7 +43,7 @@ const DB = {
             console.log('📚 Mentores obtenidos:', data.length);
             return data;
         } catch (error) {
-            console.error('❌ Error al obtener mentores:', error);
+            console.error('Error al obtener mentores:', error);
             return [];
         }
     },
@@ -61,7 +61,7 @@ const DB = {
             console.log('🎓 Aprendices obtenidos:', data.length);
             return data;
         } catch (error) {
-            console.error('❌ Error al obtener aprendices:', error);
+            console.error('Error al obtener aprendices:', error);
             return [];
         }
     },
@@ -76,10 +76,10 @@ const DB = {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            console.log('🤝 Emparejamientos obtenidos:', data.length);
+            console.log('Emparejamientos obtenidos:', data.length);
             return data;
         } catch (error) {
-            console.error('❌ Error al obtener emparejamientos:', error);
+            console.error('Error al obtener emparejamientos:', error);
             return [];
         }
     },

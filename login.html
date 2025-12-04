@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Mentor-Match</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+            padding: 50px 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: #f3f4f6;
+            padding: 5px;
+            border-radius: 12px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #6b7280;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: #f9fafb;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .alert.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .alert.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle button {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>✨ Mentor-Match</h1>
+            <p>Sistema de Gestión de Mentorías</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="login">Iniciar Sesión</button>
+            <button class="tab-btn" data-tab="register">Registrarse</button>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <!-- Login Form -->
+        <div id="login" class="tab-content active">
+            <form id="form-login">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <div class="password-toggle">
+                        <input type="password" name="password" id="login-password" required>
+                        <button type="button" onclick="togglePassword('login-password')">👁️</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+            </form>
+
+            <div class="footer-text">
+                ¿Admin? Usa: admin@mentormatch.com / admin123
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register" class="tab-content">
+            <form id="form-register">
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" name="nombre" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <div class="password-toggle">
+                        <input type="password" name="password" id="register-password" minlength="6" required>
+                        <button type="button" onclick="togglePassword('register-password')">👁️</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirmar Contraseña</label>
+                    <div class="password-toggle">
+                        <input type="password" name="confirm-password" id="confirm-password" minlength="6" required>
+                        <button type="button" onclick="togglePassword('confirm-password')">👁️</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Crear Cuenta</button>
+            </form>
+
+            <div class="footer-text">
+                Te registrarás como Aprendiz
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Detectar ruta base
+        const BASE_PATH = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+        const AUTH_URL = window.location.origin + BASE_PATH + '/php/auth.php';
+
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(btn.dataset.tab).classList.add('active');
+
+                hideAlert();
+            });
+        });
+
+        // Toggle password visibility
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // Show alert
+        function showAlert(message, type = 'error') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type}`;
+            alert.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => hideAlert(), 3000);
+            }
+        }
+
+        function hideAlert() {
+            document.getElementById('alert').style.display = 'none';
+        }
+
+        // Login
+        document.getElementById('form-login').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlert();
+
+            const formData = new FormData(e.target);
+            const data = {
+                email: formData.get('email'),
+                password: formData.get('password')
+            };
+
+            try {
+                const response = await fetch(`${AUTH_URL}?action=login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert('¡Inicio de sesión exitoso!', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    showAlert(result.error || 'Error al iniciar sesión');
+                }
+            } catch (error) {
+                showAlert('Error de conexión con el servidor');
+                console.error(error);
+            }
+        });
+
+        // Register
+        document.getElementById('form-register').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlert();
+
+            const formData = new FormData(e.target);
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirm-password');
+
+            if (password !== confirmPassword) {
+                showAlert('Las contraseñas no coinciden');
+                return;
+            }
+
+            const data = {
+                nombre: formData.get('nombre'),
+                email: formData.get('email'),
+                password: password,
+                rol: 'aprendiz'
+            };
+
+            try {
+                const response = await fetch(`${AUTH_URL}?action=register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.', 'success');
+                    setTimeout(() => {
+                        document.querySelector('[data-tab="login"]').click();
+                        e.target.reset();
+                    }, 2000);
+                } else {
+                    showAlert(result.error || 'Error al crear cuenta');
+                }
+            } catch (error) {
+                showAlert('Error de conexión con el servidor');
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>

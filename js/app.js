@@ -1,45 +1,38 @@
 /**
- * App.js - Lógica principal (versión asíncrona)
+ * App.js - Lógica principal (versión con autenticación)
  */
 
 let currentTab = 'dashboard';
-let tipoRegistro = 'mentor';
 
-document.addEventListener('DOMContentLoaded', async () => {
-    await initializeApp();
-    setupEventListeners();
-    await loadDashboard();
-});
+// NO ejecutar automáticamente, esperar a que auth.js llame a initializeApp
+// Solo exportar funciones
 
 async function initializeApp() {
-    console.log('🚀 Iniciando Mentor-Match...');
+    console.log('🚀 Iniciando Mentor-Match Admin...');
     
     if (typeof DB === 'undefined') {
         console.error('❌ Error: api.js no está cargado');
         alert('Error: No se pudo cargar el cliente API');
-        return;
+        return false;
     }
     
     const connected = await DB.init();
     if (connected) {
         console.log('✅ Aplicación inicializada correctamente');
+        return true;
     }
+    return false;
 }
 
 function setupEventListeners() {
+    console.log('🔧 Configurando event listeners...');
+    
+    // Tabs
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => switchTab(btn.dataset.tab));
     });
 
-    document.querySelectorAll('.tipo-btn').forEach(btn => {
-        btn.addEventListener('click', () => switchRegistroTipo(btn.dataset.tipo));
-    });
-
-    const formRegistro = document.getElementById('form-registro');
-    if (formRegistro) {
-        formRegistro.addEventListener('submit', handleRegistroSubmit);
-    }
-
+    // Emparejamiento
     const selectAprendiz = document.getElementById('select-aprendiz');
     const btnBuscar = document.getElementById('btn-buscar-mentores');
     
@@ -50,103 +43,92 @@ function setupEventListeners() {
         btnBuscar.addEventListener('click', buscarMentores);
     }
 
+    // Sesiones
     const formSesion = document.getElementById('form-sesion');
     if (formSesion) {
         formSesion.addEventListener('submit', handleSesionSubmit);
     }
+    
+    console.log('✅ Event listeners configurados');
 }
 
 async function switchTab(tabName) {
+    console.log('📑 Cambiando a tab:', tabName);
+    
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    const btnActivo = document.querySelector(`[data-tab="${tabName}"]`);
+    if (btnActivo) btnActivo.classList.add('active');
 
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    document.getElementById(tabName).classList.add('active');
+    const tabContent = document.getElementById(tabName);
+    if (tabContent) tabContent.classList.add('active');
 
     currentTab = tabName;
 
-    switch(tabName) {
-        case 'dashboard':
-            await loadDashboard();
-            break;
-        case 'emparejamiento':
-            await loadEmparejamientoData();
-            break;
-        case 'sesiones':
-            await loadSesionesData();
-            break;
-        case 'reportes':
-            await loadReportes();
-            break;
-    }
-}
-
-function switchRegistroTipo(tipo) {
-    tipoRegistro = tipo;
-    document.querySelectorAll('.tipo-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[data-tipo="${tipo}"]`).classList.add('active');
-    document.getElementById('btn-registro-text').textContent = 
-        tipo === 'mentor' ? 'Registrar Mentor' : 'Registrar Aprendiz';
-}
-
-async function handleRegistroSubmit(e) {
-    e.preventDefault();
-
-    const formData = {
-        nombre: document.getElementById('nombre').value,
-        email: document.getElementById('email').value,
-        carrera: document.getElementById('carrera').value,
-        semestre: document.getElementById('semestre').value,
-        materias: document.getElementById('materias').value.split(',').map(m => m.trim()),
-        habilidades: document.getElementById('habilidades').value.split(',').map(h => h.trim()),
-        disponibilidad: document.getElementById('disponibilidad').value
-    };
-
-    if (tipoRegistro === 'mentor') {
-        await DB.addMentor(formData);
-        alert('✅ Mentor registrado exitosamente');
-    } else {
-        await DB.addAprendiz(formData);
-        alert('✅ Aprendiz registrado exitosamente');
-    }
-
-    e.target.reset();
-    
-    if (currentTab === 'dashboard') {
-        await loadDashboard();
+    try {
+        switch(tabName) {
+            case 'dashboard':
+                await loadDashboard();
+                break;
+            case 'registro':
+                // El tab de registro ahora solo redirige al CRUD
+                break;
+            case 'emparejamiento':
+                await loadEmparejamientoData();
+                break;
+            case 'sesiones':
+                await loadSesionesData();
+                break;
+            case 'reportes':
+                await loadReportes();
+                break;
+            case 'crud':
+                // El iframe se carga automáticamente
+                break;
+        }
+    } catch (error) {
+        console.error('Error al cargar tab:', error);
     }
 }
 
 async function loadDashboard() {
-    const [mentores, aprendices, emparejamientos, sesiones] = await Promise.all([
-        DB.getMentores(),
-        DB.getAprendices(),
-        DB.getEmparejamientos(),
-        DB.getSesiones()
-    ]);
-
-    document.getElementById('total-mentores').textContent = mentores.length;
-    document.getElementById('total-aprendices').textContent = aprendices.length;
-    document.getElementById('total-emparejamientos').textContent = emparejamientos.length;
-    document.getElementById('sesiones-completadas').textContent = 
-        sesiones.filter(s => s.estado === 'completada').length;
-
-    const aprendicesSinMentor = aprendices.length - emparejamientos.length;
-    const alertContainer = document.getElementById('alert-container');
+    console.log('📊 Cargando dashboard...');
     
-    if (aprendicesSinMentor > 0) {
-        alertContainer.innerHTML = `
-            <div class="alert warning">
-                <span style="font-size: 1.5rem;">⚠️</span>
-                <p><strong>Atención:</strong> Hay ${aprendicesSinMentor} aprendices sin mentor asignado.</p>
-            </div>
-        `;
-    } else {
-        alertContainer.innerHTML = '';
-    }
+    try {
+        const [mentores, aprendices, emparejamientos, sesiones] = await Promise.all([
+            DB.getMentores(),
+            DB.getAprendices(),
+            DB.getEmparejamientos(),
+            DB.getSesiones()
+        ]);
 
-    loadProximasSesiones(sesiones, emparejamientos, mentores, aprendices);
-    loadCarrerasTop(emparejamientos, mentores);
+        document.getElementById('total-mentores').textContent = mentores.length;
+        document.getElementById('total-aprendices').textContent = aprendices.length;
+        document.getElementById('total-emparejamientos').textContent = emparejamientos.length;
+        document.getElementById('sesiones-completadas').textContent = 
+            sesiones.filter(s => s.estado === 'completada').length;
+
+        const aprendicesSinMentor = aprendices.length - emparejamientos.length;
+        const alertContainer = document.getElementById('alert-container');
+        
+        if (aprendicesSinMentor > 0) {
+            alertContainer.innerHTML = `
+                <div class="alert warning">
+                    <span style="font-size: 1.5rem;">⚠️</span>
+                    <p><strong>Atención:</strong> Hay ${aprendicesSinMentor} aprendices sin mentor asignado.</p>
+                </div>
+            `;
+        } else {
+            alertContainer.innerHTML = '';
+        }
+
+        loadProximasSesiones(sesiones, emparejamientos, mentores, aprendices);
+        loadCarrerasTop(emparejamientos, mentores);
+        
+        console.log('✅ Dashboard cargado');
+    } catch (error) {
+        console.error('❌ Error al cargar dashboard:', error);
+    }
 }
 
 function loadProximasSesiones(sesiones, emparejamientos, mentores, aprendices) {
@@ -210,6 +192,8 @@ function loadCarrerasTop(emparejamientos, mentores) {
 }
 
 async function loadEmparejamientoData() {
+    console.log('🤝 Cargando datos de emparejamiento...');
+    
     const aprendices = await DB.getAprendices();
     const select = document.getElementById('select-aprendiz');
     
@@ -332,6 +316,8 @@ async function asignarMentor(mentorId, aprendizId) {
 }
 
 async function loadSesionesData() {
+    console.log('📅 Cargando datos de sesiones...');
+    
     const [emparejamientos, mentores, aprendices] = await Promise.all([
         DB.getEmparejamientos(),
         DB.getMentores(),
@@ -445,6 +431,8 @@ async function completarSesion(sesionId) {
 }
 
 async function loadReportes() {
+    console.log('📈 Cargando reportes...');
+    
     const [sesiones, emparejamientos, mentores, aprendices] = await Promise.all([
         DB.getSesiones(),
         DB.getEmparejamientos(),
@@ -538,5 +526,9 @@ function loadMentoresActivos(emparejamientos, mentores, sesiones) {
     `).join('');
 }
 
+// Exponer funciones globalmente
+window.initializeApp = initializeApp;
+window.setupEventListeners = setupEventListeners;
+window.loadDashboard = loadDashboard;
 window.asignarMentor = asignarMentor;
 window.completarSesion = completarSesion;
