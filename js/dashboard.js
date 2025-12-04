@@ -1,5 +1,5 @@
 /**
- * dashboard.js - Con debugging completo
+ * dashboard.js - Con debugging completo y gestión de estados mejorada
  */
 
 var DASHBOARD_BASE_PATH = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
@@ -187,7 +187,7 @@ async function cargarDatosMentor() {
         }
         
         const totalAprendices = data.aprendices ? data.aprendices.length : 0;
-        const sesionesProgramadas = data.sesiones ? data.sesiones.filter(s => s.estado === 'programada').length : 0;
+        const sesionesProgramadas = data.sesiones ? data.sesiones.filter(s => s.estado === 'programada' || s.estado === 'confirmada').length : 0;
         const sesionesCompletadas = data.sesiones ? data.sesiones.filter(s => s.estado === 'completada').length : 0;
         
         document.getElementById('mentor-total-aprendices').textContent = totalAprendices;
@@ -222,22 +222,24 @@ function cargarSolicitudesPendientes(sesiones) {
     const ahora = new Date();
     const hace24h = new Date(ahora.getTime() - 24 * 60 * 60 * 1000);
     
+    // Filtrar solo sesiones pendientes de confirmación (estado 'programada' recientes)
     const pendientes = sesiones.filter(s => {
         const fechaCreacion = new Date(s.fecha_creacion);
+        // Solo mostrar si son recientes (menos de 24h) Y no están confirmadas
         return s.estado === 'programada' && fechaCreacion > hace24h;
     });
     
-    console.log(`📊 ${pendientes.length} solicitudes pendientes`);
+    console.log(`📊 ${pendientes.length} solicitudes pendientes de confirmación`);
     
     const container = document.getElementById('mentor-solicitudes-pendientes');
     
     if (pendientes.length === 0) {
-        container.innerHTML = '<p style="color: #6b7280;">No hay solicitudes nuevas</p>';
+        container.innerHTML = '<p style="color: #6b7280;">No hay solicitudes nuevas pendientes de confirmar</p>';
         return;
     }
     
     container.innerHTML = pendientes.map(s => `
-        <div class="sesion-item programada">
+        <div class="sesion-item programada" id="solicitud-${s.id}">
             <div class="sesion-header">
                 <div>
                     <p class="sesion-tema">${s.tema}</p>
@@ -255,7 +257,12 @@ function cargarSolicitudesPendientes(sesiones) {
 }
 
 function cargarSesionesProgramadas(sesiones) {
-    const programadas = sesiones.filter(s => s.estado === 'programada');
+    // Mostrar todas las sesiones confirmadas o programadas (sin importar la fecha de creación)
+    const programadas = sesiones.filter(s => {
+        // Mostrar si está confirmada O si es programada
+        return s.estado === 'confirmada' || s.estado === 'programada';
+    });
+    
     const container = document.getElementById('mentor-sesiones-programadas');
     
     if (programadas.length === 0) {
@@ -270,7 +277,9 @@ function cargarSesionesProgramadas(sesiones) {
                     <p class="sesion-tema">${s.tema}</p>
                     <p class="sesion-participantes">Con: ${s.aprendiz_nombre || 'Aprendiz'}</p>
                 </div>
-                <span class="sesion-badge programada">programada</span>
+                <span class="sesion-badge ${s.estado === 'confirmada' ? 'confirmada' : 'programada'}">
+                    ${s.estado === 'confirmada' ? 'confirmada' : 'programada'}
+                </span>
             </div>
             <p class="sesion-fecha">📅 ${s.fecha} a las ${s.hora} - ${s.modalidad}</p>
             <button class="btn btn-success btn-sm" onclick="completarSesionMentor(${s.id})">
@@ -311,8 +320,25 @@ async function confirmarSesion(sesionId) {
         });
         
         if (response.ok) {
-            alert('✅ Sesión confirmada');
-            await cargarDatosMentor();
+            // Remover la solicitud de la lista con animación
+            const element = document.getElementById(`solicitud-${sesionId}`);
+            if (element) {
+                element.style.opacity = '0';
+                element.style.transform = 'translateX(-20px)';
+                element.style.transition = 'all 0.3s ease-out';
+                setTimeout(() => {
+                    element.remove();
+                    // Verificar si quedan solicitudes
+                    const container = document.getElementById('mentor-solicitudes-pendientes');
+                    if (container.children.length === 0) {
+                        container.innerHTML = '<p style="color: #6b7280;">No hay solicitudes nuevas pendientes de confirmar</p>';
+                    }
+                }, 300);
+            }
+            
+            alert('✅ Sesión confirmada exitosamente');
+            // Recargar datos completos después de un momento
+            setTimeout(() => cargarDatosMentor(), 500);
         } else {
             const result = await response.json();
             alert('❌ Error: ' + result.error);
@@ -335,8 +361,25 @@ async function rechazarSesion(sesionId) {
         });
         
         if (response.ok) {
+            // Remover la solicitud de la lista con animación
+            const element = document.getElementById(`solicitud-${sesionId}`);
+            if (element) {
+                element.style.opacity = '0';
+                element.style.transform = 'translateX(-20px)';
+                element.style.transition = 'all 0.3s ease-out';
+                setTimeout(() => {
+                    element.remove();
+                    // Verificar si quedan solicitudes
+                    const container = document.getElementById('mentor-solicitudes-pendientes');
+                    if (container.children.length === 0) {
+                        container.innerHTML = '<p style="color: #6b7280;">No hay solicitudes nuevas pendientes de confirmar</p>';
+                    }
+                }, 300);
+            }
+            
             alert('❌ Sesión rechazada');
-            await cargarDatosMentor();
+            // Recargar datos completos después de un momento
+            setTimeout(() => cargarDatosMentor(), 500);
         } else {
             const result = await response.json();
             alert('❌ Error: ' + result.error);
@@ -377,7 +420,6 @@ async function mostrarVistaAprendiz() {
     console.log('🎓 ========== CARGANDO VISTA APRENDIZ ==========');
     console.log('📊 Datos del aprendiz:', dashboardUserData);
     
-    // Verificar que los elementos existen
     const vistaAprendiz = document.getElementById('vista-aprendiz');
     const perfilIncompleto = document.getElementById('aprendiz-perfil-incompleto');
     const panelPrincipal = document.getElementById('aprendiz-panel-principal');
@@ -401,15 +443,12 @@ async function mostrarVistaAprendiz() {
         if (perfilIncompleto) {
             perfilIncompleto.classList.remove('hidden');
             console.log('✅ Formulario perfil incompleto mostrado');
-        } else {
-            console.error('❌ No se encuentra el elemento perfil-incompleto');
         }
         
         if (panelPrincipal) {
             panelPrincipal.classList.add('hidden');
         }
         
-        // Configurar evento del formulario
         const form = document.getElementById('form-completar-perfil-aprendiz');
         if (form) {
             form.addEventListener('submit', async (e) => {
@@ -417,8 +456,6 @@ async function mostrarVistaAprendiz() {
                 await completarPerfilAprendiz(e);
             });
             console.log('✅ Evento del formulario configurado');
-        } else {
-            console.error('❌ No se encuentra el formulario');
         }
     } else {
         console.log('✅ PERFIL COMPLETO - Cargando panel principal');
@@ -430,8 +467,6 @@ async function mostrarVistaAprendiz() {
         if (panelPrincipal) {
             panelPrincipal.classList.remove('hidden');
             console.log('✅ Panel principal mostrado');
-        } else {
-            console.error('❌ No se encuentra el panel principal');
         }
         
         await cargarDatosAprendiz();
@@ -491,25 +526,15 @@ async function cargarDatosAprendiz() {
         const formSolicitar = document.getElementById('form-solicitar-sesion');
         const buscarMentorSection = document.getElementById('aprendiz-buscar-mentor');
         
-        console.log('🔍 Verificando elementos:');
-        console.log('  - mentor-info:', mentorInfo ? '✅' : '❌');
-        console.log('  - form-solicitar:', formSolicitar ? '✅' : '❌');
-        console.log('  - buscar-mentor:', buscarMentorSection ? '✅' : '❌');
-        
         if (data.mentor) {
             console.log('✅ Tiene mentor asignado:', data.mentor.nombre);
             
-            // Ocultar sección de búsqueda
             if (buscarMentorSection) {
                 buscarMentorSection.style.display = 'none';
-                console.log('✅ Sección búsqueda oculta');
             }
             
             if (mentorInfo) {
-                const materias = data.mentor.materias ? 
-                    (typeof data.mentor.materias === 'string' ? 
-                        JSON.parse(data.mentor.materias) : 
-                        data.mentor.materias) : [];
+                const materias = data.mentor.materias || [];
                 
                 mentorInfo.innerHTML = `
                     <div class="mentor-activo-card">
@@ -527,7 +552,6 @@ async function cargarDatosAprendiz() {
                         </div>
                     </div>
                 `;
-                console.log('✅ Info del mentor renderizada');
             }
             
             if (formSolicitar) {
@@ -536,15 +560,12 @@ async function cargarDatosAprendiz() {
                     e.preventDefault();
                     await solicitarSesion(e, data.emparejamiento.id);
                 };
-                console.log('✅ Formulario de sesión activado');
             }
         } else {
             console.log('⚠️ NO tiene mentor asignado');
             
-            // Mostrar sección de búsqueda
             if (buscarMentorSection) {
                 buscarMentorSection.style.display = 'block';
-                console.log('✅ Sección búsqueda visible');
             }
             
             if (mentorInfo) {
@@ -559,11 +580,9 @@ async function cargarDatosAprendiz() {
                 formSolicitar.classList.add('hidden');
             }
             
-            // Cargar mentores disponibles
             await cargarMentoresDisponibles(data.aprendiz);
         }
         
-        // Cargar sesiones
         if (data.sesiones && data.mentor) {
             cargarSesionesAprendiz(data.sesiones, data.mentor);
         } else {
@@ -583,26 +602,21 @@ async function cargarDatosAprendiz() {
 
 async function cargarMentoresDisponibles(aprendiz) {
     console.log('🔍 Cargando mentores disponibles...');
-    console.log('📊 Perfil del aprendiz:', aprendiz);
     
     try {
         const mentores = await DB.getMentores();
         console.log('📊 Mentores encontrados:', mentores.length);
         
         if (mentores.length === 0) {
-            console.warn('⚠️ No hay mentores en la base de datos');
             document.getElementById('aprendiz-lista-mentores').innerHTML = 
                 '<p style="color: #6b7280;">No hay mentores disponibles en este momento.</p>';
             return;
         }
         
-        // Calcular compatibilidad
         const mentoresConCompatibilidad = mentores.map(mentor => ({
             ...mentor,
             compatibilidad: calcularCompatibilidad(mentor, aprendiz)
         })).sort((a, b) => b.compatibilidad - a.compatibilidad);
-        
-        console.log('📊 Mentores con compatibilidad calculada:', mentoresConCompatibilidad);
         
         mostrarMentoresDisponibles(mentoresConCompatibilidad, aprendiz);
         
@@ -614,17 +628,10 @@ async function cargarMentoresDisponibles(aprendiz) {
 function calcularCompatibilidad(mentor, aprendiz) {
     let score = 0;
     
-    console.log('🔢 Calculando compatibilidad:');
-    console.log('  Mentor:', mentor.nombre);
-    console.log('  Aprendiz:', aprendiz.nombre);
-    
-    // Misma carrera: 40 puntos
     if (mentor.carrera === aprendiz.carrera) {
         score += 40;
-        console.log('  ✅ Misma carrera (+40)');
     }
     
-    // Materias en común: 20 puntos por cada una
     const materiasComunes = mentor.materias.filter(m =>
         aprendiz.materias.some(am => 
             am.toLowerCase().includes(m.toLowerCase()) || 
@@ -632,9 +639,7 @@ function calcularCompatibilidad(mentor, aprendiz) {
         )
     ).length;
     score += materiasComunes * 20;
-    console.log(`  ✅ ${materiasComunes} materias en común (+${materiasComunes * 20})`);
     
-    // Habilidades en común: 10 puntos por cada una
     const habilidadesComunes = mentor.habilidades.filter(h =>
         aprendiz.habilidades.some(ah => 
             ah.toLowerCase().includes(h.toLowerCase()) || 
@@ -642,37 +647,23 @@ function calcularCompatibilidad(mentor, aprendiz) {
         )
     ).length;
     score += habilidadesComunes * 10;
-    console.log(`  ✅ ${habilidadesComunes} habilidades en común (+${habilidadesComunes * 10})`);
     
-    const finalScore = Math.min(score, 100);
-    console.log(`  📊 Score final: ${finalScore}%`);
-    
-    return finalScore;
+    return Math.min(score, 100);
 }
 
 function mostrarMentoresDisponibles(mentores, aprendiz) {
-    console.log('📋 Mostrando mentores disponibles...');
-    
     const container = document.getElementById('aprendiz-lista-mentores');
     
     if (!container) {
-        console.error('❌ No se encuentra el contenedor aprendiz-lista-mentores');
+        console.error('❌ No se encuentra el contenedor');
         return;
     }
     
-    if (mentores.length === 0) {
-        container.innerHTML = '<p style="color: #6b7280;">No hay mentores disponibles en este momento.</p>';
-        return;
-    }
-    
-    // Mostrar los 5 mejores
     const topMentores = mentores.slice(0, 5);
-    console.log('📊 Mostrando top', topMentores.length, 'mentores');
     
     container.innerHTML = `
         <p style="margin-bottom: 1rem; color: #6b7280;">
-            Encontramos ${topMentores.length} mentores compatibles con tu perfil. 
-            Puedes solicitar una sesión con cualquiera de ellos.
+            Encontramos ${topMentores.length} mentores compatibles con tu perfil.
         </p>
         ${topMentores.map(mentor => {
             const compatClass = mentor.compatibilidad >= 70 ? 'high' : 
@@ -709,14 +700,10 @@ function mostrarMentoresDisponibles(mentores, aprendiz) {
             `;
         }).join('')}
     `;
-    
-    console.log('✅ Mentores renderizados en el DOM');
 }
 
 async function solicitarMentor(mentorId, aprendizId) {
-    if (!confirm('¿Deseas solicitar a este mentor? Se creará un emparejamiento.')) return;
-    
-    console.log('📤 Solicitando mentor:', mentorId, 'para aprendiz:', aprendizId);
+    if (!confirm('¿Deseas solicitar a este mentor?')) return;
     
     try {
         const resultado = await DB.addEmparejamiento({
@@ -737,13 +724,7 @@ async function solicitarMentor(mentorId, aprendizId) {
 async function solicitarSesion(e, emparejamientoId) {
     const formData = new FormData(e.target);
     
-    console.log('📤 Solicitando sesión...');
-    
     try {
-        if (typeof DB === 'undefined') {
-            throw new Error('API no disponible');
-        }
-        
         await DB.addSesion({
             emparejamientoId: emparejamientoId,
             fecha: formData.get('fecha'),
@@ -764,7 +745,6 @@ async function solicitarSesion(e, emparejamientoId) {
 
 function cargarSesionesAprendiz(sesiones, mentor) {
     console.log('📅 Cargando sesiones del aprendiz...');
-    console.log(`📊 ${sesiones.length} sesiones`);
     
     const container = document.getElementById('aprendiz-sesiones');
     
@@ -773,23 +753,33 @@ function cargarSesionesAprendiz(sesiones, mentor) {
         return;
     }
     
-    container.innerHTML = sesiones.map(s => `
-        <div class="sesion-item ${s.estado}">
-            <div class="sesion-header">
-                <div>
-                    <p class="sesion-tema">${s.tema}</p>
-                    <p class="sesion-participantes">Con: ${mentor.nombre}</p>
+    container.innerHTML = sesiones.map(s => {
+        let estadoLabel = s.estado;
+        let estadoClass = s.estado;
+        
+        if (s.estado === 'confirmada') {
+            estadoLabel = 'Confirmada';
+            estadoClass = 'programada';
+        }
+        
+        return `
+            <div class="sesion-item ${estadoClass}">
+                <div class="sesion-header">
+                    <div>
+                        <p class="sesion-tema">${s.tema}</p>
+                        <p class="sesion-participantes">Con: ${mentor.nombre}</p>
+                    </div>
+                    <span class="sesion-badge ${estadoClass}">${estadoLabel}</span>
                 </div>
-                <span class="sesion-badge ${s.estado}">${s.estado}</span>
+                <p class="sesion-fecha">📅 ${s.fecha} a las ${s.hora} - ${s.modalidad}</p>
+                ${s.bitacora ? `
+                    <p class="sesion-bitacora">
+                        <strong>Notas:</strong> ${s.bitacora}
+                    </p>
+                ` : ''}
             </div>
-            <p class="sesion-fecha">📅 ${s.fecha} a las ${s.hora} - ${s.modalidad}</p>
-            ${s.bitacora ? `
-                <p class="sesion-bitacora">
-                    <strong>Notas:</strong> ${s.bitacora}
-                </p>
-            ` : ''}
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // ==================== LOGOUT ====================

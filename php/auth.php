@@ -454,7 +454,8 @@ function confirmarSesion($db) {
     
     error_log("🔵 Confirmando sesión: " . $sesionId);
     
-    $stmt = $db->prepare("UPDATE sesiones SET estado = 'programada' WHERE id = ?");
+    // Actualizar estado a 'confirmada' para diferenciar de 'programada'
+    $stmt = $db->prepare("UPDATE sesiones SET estado = 'confirmada' WHERE id = ?");
     $stmt->execute([$sesionId]);
     
     error_log("✅ Sesión confirmada");
@@ -540,6 +541,10 @@ function getAprendizData($db) {
         return;
     }
     
+    // IMPORTANTE: Decodificar JSON para que JavaScript pueda trabajar con arrays
+    $aprendiz['materias'] = json_decode($aprendiz['materias']);
+    $aprendiz['habilidades'] = json_decode($aprendiz['habilidades']);
+    
     error_log("✅ Aprendiz encontrado: ID " . $aprendiz['id']);
     
     // Obtener emparejamiento
@@ -559,6 +564,9 @@ function getAprendizData($db) {
         $mentor = $stmt->fetch();
         
         if ($mentor) {
+            // Decodificar JSON del mentor también
+            $mentor['materias'] = json_decode($mentor['materias']);
+            $mentor['habilidades'] = json_decode($mentor['habilidades']);
             error_log("✅ Mentor encontrado: " . $mentor['nombre']);
         }
         
