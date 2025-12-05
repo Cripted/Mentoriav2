@@ -452,17 +452,53 @@ function confirmarSesion($db) {
         return;
     }
     
-    error_log("🔵 Confirmando sesión: " . $sesionId);
+    error_log("====================================");
+    error_log("🔵 INICIANDO confirmación de sesión ID: " . $sesionId);
     
-    // Actualizar estado a 'confirmada' para diferenciar de 'programada'
-    $stmt = $db->prepare("UPDATE sesiones SET estado = 'confirmada' WHERE id = ?");
+    // VERIFICAR ESTADO ACTUAL
+    $stmt = $db->prepare("SELECT id, tema, estado FROM sesiones WHERE id = ?");
     $stmt->execute([$sesionId]);
+    $sesionActual = $stmt->fetch();
     
-    error_log("✅ Sesión confirmada");
+    if (!$sesionActual) {
+        error_log("❌ Sesión no encontrada");
+        http_response_code(404);
+        echo json_encode(['error' => 'Sesión no encontrada']);
+        return;
+    }
     
-    echo json_encode(['success' => true, 'message' => 'Sesión confirmada']);
+    error_log("📊 Estado ANTES: '" . $sesionActual['estado'] . "'");
+    
+    // ACTUALIZAR a 'confirmada'
+    $stmt = $db->prepare("UPDATE sesiones SET estado = 'confirmada' WHERE id = ?");
+    $resultado = $stmt->execute([$sesionId]);
+    
+    error_log("📝 Resultado UPDATE: " . ($resultado ? 'TRUE' : 'FALSE'));
+    error_log("📝 Filas afectadas: " . $stmt->rowCount());
+    
+    // VERIFICAR ESTADO DESPUÉS
+    $stmt = $db->prepare("SELECT id, tema, estado FROM sesiones WHERE id = ?");
+    $stmt->execute([$sesionId]);
+    $sesionDespues = $stmt->fetch();
+    
+    error_log("📊 Estado DESPUÉS: '" . $sesionDespues['estado'] . "'");
+    error_log("====================================");
+    
+    if ($sesionDespues['estado'] !== 'confirmada') {
+        error_log("❌ ERROR CRÍTICO: El estado no se actualizó correctamente");
+        http_response_code(500);
+        echo json_encode(['error' => 'Error al actualizar estado de sesión']);
+        return;
+    }
+    
+    error_log("✅ Sesión confirmada exitosamente");
+    
+    echo json_encode([
+        'success' => true, 
+        'message' => 'Sesión confirmada',
+        'sesion' => $sesionDespues
+    ]);
 }
-
 function rechazarSesion($db) {
     if (!isset($_SESSION['usuario_id']) || $_SESSION['rol'] !== 'mentor') {
         http_response_code(403);
