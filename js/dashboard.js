@@ -219,15 +219,9 @@ async function cargarDatosMentor() {
 }
 
 function cargarSolicitudesPendientes(sesiones) {
-    const ahora = new Date();
-    const hace24h = new Date(ahora.getTime() - 24 * 60 * 60 * 1000);
-    
-    // Filtrar solo sesiones pendientes de confirmación (estado 'programada' recientes)
-    const pendientes = sesiones.filter(s => {
-        const fechaCreacion = new Date(s.fecha_creacion);
-        // Solo mostrar si son recientes (menos de 24h) Y no están confirmadas
-        return s.estado === 'programada' && fechaCreacion > hace24h;
-    });
+    // Filtrar SOLO sesiones con estado 'programada' (sin confirmar)
+    // Excluir las que ya están 'confirmada', 'completada' o 'cancelada'
+    const pendientes = sesiones.filter(s => s.estado === 'programada');
     
     console.log(`📊 ${pendientes.length} solicitudes pendientes de confirmación`);
     
@@ -257,16 +251,15 @@ function cargarSolicitudesPendientes(sesiones) {
 }
 
 function cargarSesionesProgramadas(sesiones) {
-    // Mostrar todas las sesiones confirmadas o programadas (sin importar la fecha de creación)
-    const programadas = sesiones.filter(s => {
-        // Mostrar si está confirmada O si es programada
-        return s.estado === 'confirmada' || s.estado === 'programada';
-    });
+    // Mostrar solo sesiones confirmadas (ya aceptadas por el mentor)
+    const programadas = sesiones.filter(s => s.estado === 'confirmada');
+    
+    console.log(`📅 ${programadas.length} sesiones programadas/confirmadas`);
     
     const container = document.getElementById('mentor-sesiones-programadas');
     
     if (programadas.length === 0) {
-        container.innerHTML = '<p style="color: #6b7280;">No hay sesiones programadas</p>';
+        container.innerHTML = '<p style="color: #6b7280;">No hay sesiones confirmadas</p>';
         return;
     }
     
@@ -277,9 +270,7 @@ function cargarSesionesProgramadas(sesiones) {
                     <p class="sesion-tema">${s.tema}</p>
                     <p class="sesion-participantes">Con: ${s.aprendiz_nombre || 'Aprendiz'}</p>
                 </div>
-                <span class="sesion-badge ${s.estado === 'confirmada' ? 'confirmada' : 'programada'}">
-                    ${s.estado === 'confirmada' ? 'confirmada' : 'programada'}
-                </span>
+                <span class="sesion-badge confirmada">confirmada</span>
             </div>
             <p class="sesion-fecha">📅 ${s.fecha} a las ${s.hora} - ${s.modalidad}</p>
             <button class="btn btn-success btn-sm" onclick="completarSesionMentor(${s.id})">
@@ -320,25 +311,9 @@ async function confirmarSesion(sesionId) {
         });
         
         if (response.ok) {
-            // Remover la solicitud de la lista con animación
-            const element = document.getElementById(`solicitud-${sesionId}`);
-            if (element) {
-                element.style.opacity = '0';
-                element.style.transform = 'translateX(-20px)';
-                element.style.transition = 'all 0.3s ease-out';
-                setTimeout(() => {
-                    element.remove();
-                    // Verificar si quedan solicitudes
-                    const container = document.getElementById('mentor-solicitudes-pendientes');
-                    if (container.children.length === 0) {
-                        container.innerHTML = '<p style="color: #6b7280;">No hay solicitudes nuevas pendientes de confirmar</p>';
-                    }
-                }, 300);
-            }
-            
             alert('✅ Sesión confirmada exitosamente');
-            // Recargar datos completos después de un momento
-            setTimeout(() => cargarDatosMentor(), 500);
+            // Recargar todos los datos del mentor
+            await cargarDatosMentor();
         } else {
             const result = await response.json();
             alert('❌ Error: ' + result.error);
@@ -361,25 +336,9 @@ async function rechazarSesion(sesionId) {
         });
         
         if (response.ok) {
-            // Remover la solicitud de la lista con animación
-            const element = document.getElementById(`solicitud-${sesionId}`);
-            if (element) {
-                element.style.opacity = '0';
-                element.style.transform = 'translateX(-20px)';
-                element.style.transition = 'all 0.3s ease-out';
-                setTimeout(() => {
-                    element.remove();
-                    // Verificar si quedan solicitudes
-                    const container = document.getElementById('mentor-solicitudes-pendientes');
-                    if (container.children.length === 0) {
-                        container.innerHTML = '<p style="color: #6b7280;">No hay solicitudes nuevas pendientes de confirmar</p>';
-                    }
-                }, 300);
-            }
-            
             alert('❌ Sesión rechazada');
-            // Recargar datos completos después de un momento
-            setTimeout(() => cargarDatosMentor(), 500);
+            // Recargar todos los datos del mentor
+            await cargarDatosMentor();
         } else {
             const result = await response.json();
             alert('❌ Error: ' + result.error);
