@@ -1,5 +1,6 @@
 /**
  * dashboard.js - Con debugging completo y gestión de estados mejorada
+ * VERSIÓN CORREGIDA: Las sesiones confirmadas ahora se muestran correctamente
  */
 
 var DASHBOARD_BASE_PATH = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
@@ -178,7 +179,8 @@ async function cargarDatosMentor() {
         const response = await fetch(`${DASHBOARD_AUTH_URL}?action=get-mentor-data`);
         const data = await response.json();
         
-        console.log('📊 Datos recibidos:', data);
+        console.log('📊 Datos recibidos completos:', data);
+        console.log('📊 Sesiones:', data.sesiones);
         
         if (!response.ok) {
             console.error('❌ Error:', data.error);
@@ -186,17 +188,23 @@ async function cargarDatosMentor() {
             return;
         }
         
+        // Calcular estadísticas
         const totalAprendices = data.aprendices ? data.aprendices.length : 0;
-        const sesionesProgramadas = data.sesiones ? data.sesiones.filter(s => s.estado === 'programada' || s.estado === 'confirmada').length : 0;
+        const sesionesProgramadas = data.sesiones ? data.sesiones.filter(s => s.estado === 'confirmada').length : 0;
         const sesionesCompletadas = data.sesiones ? data.sesiones.filter(s => s.estado === 'completada').length : 0;
         
         document.getElementById('mentor-total-aprendices').textContent = totalAprendices;
         document.getElementById('mentor-sesiones-pendientes').textContent = sesionesProgramadas;
         document.getElementById('mentor-sesiones-completadas').textContent = sesionesCompletadas;
         
-        console.log('📊 Estadísticas actualizadas');
+        console.log('📊 Estadísticas actualizadas:');
+        console.log(`  - Total aprendices: ${totalAprendices}`);
+        console.log(`  - Sesiones confirmadas (programadas): ${sesionesProgramadas}`);
+        console.log(`  - Sesiones completadas: ${sesionesCompletadas}`);
         
+        // Cargar listas
         if (data.sesiones) {
+            console.log('🔄 Cargando solicitudes y sesiones programadas...');
             cargarSolicitudesPendientes(data.sesiones);
             cargarSesionesProgramadas(data.sesiones);
         } else {
@@ -220,10 +228,10 @@ async function cargarDatosMentor() {
 
 function cargarSolicitudesPendientes(sesiones) {
     // Filtrar SOLO sesiones con estado 'programada' (sin confirmar)
-    // Excluir las que ya están 'confirmada', 'completada' o 'cancelada'
     const pendientes = sesiones.filter(s => s.estado === 'programada');
     
-    console.log(`📊 ${pendientes.length} solicitudes pendientes de confirmación`);
+    console.log(`📋 ${pendientes.length} solicitudes pendientes de confirmación`);
+    console.log('📋 Solicitudes pendientes:', pendientes);
     
     const container = document.getElementById('mentor-solicitudes-pendientes');
     
@@ -251,33 +259,66 @@ function cargarSolicitudesPendientes(sesiones) {
 }
 
 function cargarSesionesProgramadas(sesiones) {
-    // Mostrar solo sesiones confirmadas (ya aceptadas por el mentor)
-    const programadas = sesiones.filter(s => s.estado === 'confirmada');
+    console.log('====================================');
+    console.log('🔍 INICIANDO cargarSesionesProgramadas');
+    console.log('📊 Total de sesiones recibidas:', sesiones.length);
+    console.log('📋 Todas las sesiones:', sesiones);
     
-    console.log(`📅 ${programadas.length} sesiones programadas/confirmadas`);
+    // Mostrar cada sesión con su estado
+    sesiones.forEach(s => {
+        console.log(`  - Sesión ${s.id}: "${s.tema}" - Estado: "${s.estado}"`);
+    });
+    
+    // Filtrar sesiones confirmadas
+    const confirmadas = sesiones.filter(s => {
+        console.log(`  🔎 Verificando sesión ${s.id}: estado="${s.estado}", ¿es 'confirmada'? ${s.estado === 'confirmada'}`);
+        return s.estado === 'confirmada';
+    });
+    
+    console.log(`✅ ${confirmadas.length} sesiones confirmadas encontradas`);
+    console.log('📊 Sesiones confirmadas filtradas:', confirmadas);
+    console.log('====================================');
     
     const container = document.getElementById('mentor-sesiones-programadas');
     
-    if (programadas.length === 0) {
-        container.innerHTML = '<p style="color: #6b7280;">No hay sesiones confirmadas</p>';
+    if (!container) {
+        console.error('❌ CRÍTICO: No se encuentra el contenedor mentor-sesiones-programadas');
         return;
     }
     
-    container.innerHTML = programadas.map(s => `
+    console.log('✅ Contenedor encontrado');
+    
+    if (confirmadas.length === 0) {
+        console.log('⚠️ No hay sesiones confirmadas, mostrando mensaje');
+        container.innerHTML = '<p style="color: #6b7280;">No hay sesiones confirmadas pendientes de realizar</p>';
+        return;
+    }
+    
+    console.log('🎨 Generando HTML para', confirmadas.length, 'sesiones');
+    
+    const html = confirmadas.map(s => {
+        console.log(`  - Generando HTML para sesión ${s.id}: ${s.tema}`);
+        return `
         <div class="sesion-item programada">
             <div class="sesion-header">
                 <div>
                     <p class="sesion-tema">${s.tema}</p>
                     <p class="sesion-participantes">Con: ${s.aprendiz_nombre || 'Aprendiz'}</p>
                 </div>
-                <span class="sesion-badge confirmada">confirmada</span>
+                <span class="sesion-badge confirmada">Confirmada</span>
             </div>
             <p class="sesion-fecha">📅 ${s.fecha} a las ${s.hora} - ${s.modalidad}</p>
             <button class="btn btn-success btn-sm" onclick="completarSesionMentor(${s.id})">
                 ✓ Marcar como Completada
             </button>
         </div>
-    `).join('');
+    `;
+    }).join('');
+    
+    console.log('📝 HTML generado (primeros 200 caracteres):', html.substring(0, 200));
+    container.innerHTML = html;
+    console.log('✅ HTML insertado en el contenedor');
+    console.log('====================================');
 }
 
 function cargarAprendicesMentor(aprendices) {
@@ -303,30 +344,112 @@ function cargarAprendicesMentor(aprendices) {
 async function confirmarSesion(sesionId) {
     if (!confirm('¿Confirmar esta sesión?')) return;
     
+    console.log('====================================');
+    console.log('🔵 INICIANDO confirmación de sesión:', sesionId);
+    
     try {
+        console.log('📤 Enviando petición al servidor...');
         const response = await fetch(`${DASHBOARD_AUTH_URL}?action=confirmar-sesion`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sesionId })
         });
         
+        console.log('📥 Respuesta recibida, status:', response.status);
+        const result = await response.json();
+        console.log('📊 Resultado parseado:', result);
+        
         if (response.ok) {
+            console.log('✅ Respuesta exitosa del servidor');
             alert('✅ Sesión confirmada exitosamente');
-            // Recargar todos los datos del mentor
+            
+            console.log('🔄 Llamando a cargarDatosMentor()...');
             await cargarDatosMentor();
+            console.log('✅ cargarDatosMentor() completado');
         } else {
-            const result = await response.json();
+            console.error('❌ Error en la respuesta:', result.error);
             alert('❌ Error: ' + result.error);
         }
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('❌ Excepción capturada:', error);
         alert('❌ Error al confirmar sesión');
     }
+    console.log('====================================');
+}
+
+async function cargarDatosMentor() {
+    console.log('====================================');
+    console.log('📥 INICIANDO cargarDatosMentor');
+    
+    try {
+        console.log('📤 Solicitando datos al servidor...');
+        const response = await fetch(`${DASHBOARD_AUTH_URL}?action=get-mentor-data`);
+        
+        console.log('📥 Respuesta recibida, status:', response.status);
+        const data = await response.json();
+        
+        console.log('📊 Datos completos recibidos:', data);
+        console.log('📊 Número de sesiones:', data.sesiones ? data.sesiones.length : 0);
+        
+        if (data.sesiones) {
+            console.log('📋 Estados de todas las sesiones:');
+            data.sesiones.forEach(s => {
+                console.log(`  - ID ${s.id}: "${s.tema}" - Estado: "${s.estado}" (tipo: ${typeof s.estado})`);
+            });
+        }
+        
+        if (!response.ok) {
+            console.error('❌ Error en respuesta:', data.error);
+            alert('Error al cargar datos: ' + data.error);
+            return;
+        }
+        
+        // Actualizar estadísticas
+        const totalAprendices = data.aprendices ? data.aprendices.length : 0;
+        const sesionesProgramadas = data.sesiones ? data.sesiones.filter(s => s.estado === 'confirmada').length : 0;
+        const sesionesCompletadas = data.sesiones ? data.sesiones.filter(s => s.estado === 'completada').length : 0;
+        
+        console.log('📊 Estadísticas calculadas:');
+        console.log('  - Total aprendices:', totalAprendices);
+        console.log('  - Sesiones confirmadas:', sesionesProgramadas);
+        console.log('  - Sesiones completadas:', sesionesCompletadas);
+        
+        document.getElementById('mentor-total-aprendices').textContent = totalAprendices;
+        document.getElementById('mentor-sesiones-pendientes').textContent = sesionesProgramadas;
+        document.getElementById('mentor-sesiones-completadas').textContent = sesionesCompletadas;
+        
+        // Cargar listas
+        if (data.sesiones) {
+            console.log('🔄 Cargando solicitudes pendientes...');
+            cargarSolicitudesPendientes(data.sesiones);
+            
+            console.log('🔄 Cargando sesiones programadas...');
+            cargarSesionesProgramadas(data.sesiones);
+        } else {
+            console.warn('⚠️ No hay sesiones en los datos');
+            document.getElementById('mentor-solicitudes-pendientes').innerHTML = '<p style="color: #6b7280;">No hay solicitudes nuevas</p>';
+            document.getElementById('mentor-sesiones-programadas').innerHTML = '<p style="color: #6b7280;">No hay sesiones programadas</p>';
+        }
+        
+        if (data.aprendices) {
+            cargarAprendicesMentor(data.aprendices);
+        }
+        
+        console.log('✅ cargarDatosMentor completado exitosamente');
+        
+    } catch (error) {
+        console.error('❌ Excepción en cargarDatosMentor:', error);
+        console.error('Stack trace:', error.stack);
+        alert('Error al cargar datos del mentor');
+    }
+    console.log('====================================');
 }
 
 async function rechazarSesion(sesionId) {
     const motivo = prompt('Motivo del rechazo (opcional):');
     if (motivo === null) return;
+    
+    console.log('🔵 Rechazando sesión:', sesionId);
     
     try {
         const response = await fetch(`${DASHBOARD_AUTH_URL}?action=rechazar-sesion`, {
@@ -337,7 +460,6 @@ async function rechazarSesion(sesionId) {
         
         if (response.ok) {
             alert('❌ Sesión rechazada');
-            // Recargar todos los datos del mentor
             await cargarDatosMentor();
         } else {
             const result = await response.json();
@@ -352,6 +474,8 @@ async function rechazarSesion(sesionId) {
 async function completarSesionMentor(sesionId) {
     const bitacora = prompt('Ingrese las notas de la sesión:');
     if (!bitacora || bitacora.trim() === '') return;
+    
+    console.log('🔵 Completando sesión:', sesionId);
     
     try {
         const response = await fetch(`${DASHBOARD_AUTH_URL}?action=completar-sesion`, {
@@ -716,50 +840,48 @@ function cargarSesionesAprendiz(sesiones, mentor) {
         let estadoLabel = s.estado;
         let estadoClass = s.estado;
         
-        if (s.estado === 'confirmada') {
+        if (s.estado === 'programada') {
+            estadoLabel = 'Pendiente de confirmar';
+            estadoClass = 'programada';
+        } else if (s.estado === 'confirmada') {
             estadoLabel = 'Confirmada';
             estadoClass = 'programada';
-        }
-        
-        return `
-            <div class="sesion-item ${estadoClass}">
-                <div class="sesion-header">
-                    <div>
-                        <p class="sesion-tema">${s.tema}</p>
-                        <p class="sesion-participantes">Con: ${mentor.nombre}</p>
-                    </div>
-                    <span class="sesion-badge ${estadoClass}">${estadoLabel}</span>
-                </div>
-                <p class="sesion-fecha">📅 ${s.fecha} a las ${s.hora} - ${s.modalidad}</p>
-                ${s.bitacora ? `
-                    <p class="sesion-bitacora">
-                        <strong>Notas:</strong> ${s.bitacora}
-                    </p>
-                ` : ''}
-            </div>
-        `;
-    }).join('');
-}
-
-// ==================== LOGOUT ====================
-
-async function logout() {
-    console.log('👋 Cerrando sesión...');
-    
-    try {
-        await fetch(`${DASHBOARD_AUTH_URL}?action=logout`, { method: 'POST' });
-        window.location.href = 'index.html';
-    } catch (error) {
-        console.error('❌ Error:', error);
-        window.location.href = 'index.html';
     }
+    
+    return `
+        <div class="sesion-item ${estadoClass}">
+            <div class="sesion-header">
+                <div>
+                    <p class="sesion-tema">${s.tema}</p>
+                    <p class="sesion-participantes">Con: ${mentor.nombre}</p>
+                </div>
+                <span class="sesion-badge ${estadoClass}">${estadoLabel}</span>
+            </div>
+            <p class="sesion-fecha">📅 ${s.fecha} a las ${s.hora} - ${s.modalidad}</p>
+            ${s.bitacora ? `
+                <p class="sesion-bitacora">
+                    <strong>Notas:</strong> ${s.bitacora}
+                </p>
+            ` : ''}
+        </div>
+    `;
+}).join('');
 }
-
+// ==================== LOGOUT ====================
+async function logout() {
+console.log('👋 Cerrando sesión...');
+try {
+    await fetch(`${DASHBOARD_AUTH_URL}?action=logout`, { method: 'POST' });
+    window.location.href = 'index.html';
+} catch (error) {
+    console.error('❌ Error:', error);
+    window.location.href = 'index.html';
+}
+}
 // Exponer funciones globalmente
 window.logout = logout;
 window.confirmarSesion = confirmarSesion;
 window.rechazarSesion = rechazarSesion;
 window.completarSesionMentor = completarSesionMentor;
 window.solicitarMentor = solicitarMentor;
-
 console.log('✅ dashboard.js cargado completamente');
